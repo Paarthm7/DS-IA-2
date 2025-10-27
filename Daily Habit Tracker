@@ -1,1 +1,144 @@
-https://www.programiz.com/online-compiler/3LqwP0K6oSYqw
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_NAME 50
+#define DAYS 30
+
+typedef struct Habit {
+    char name[MAX_NAME];
+    int progress[DAYS];
+    int totalDone;
+    struct Habit *next;
+} Habit;
+
+Habit *head = NULL;
+int currentDay = 0;
+
+void addHabit() {
+    Habit *newHabit = (Habit *)malloc(sizeof(Habit));
+    printf("Enter habit name: ");
+    scanf(" %[^\n]", newHabit->name);
+    memset(newHabit->progress, 0, sizeof(newHabit->progress));
+    newHabit->totalDone = 0;
+    newHabit->next = head;
+    head = newHabit;
+    printf("Habit added successfully!\n");
+}
+
+void viewHabits() {
+    if (!head) {
+        printf("No habits found!\n");
+        return;
+    }
+    Habit *temp = head;
+    int i = 1;
+    while (temp) {
+        printf("%d. %s\n", i++, temp->name);
+        temp = temp->next;
+    }
+}
+
+void markHabitDone() {
+    viewHabits();
+    printf("Enter habit number to mark done: ");
+    int choice;
+    scanf("%d", &choice);
+    Habit *temp = head;
+    while (temp && --choice)
+        temp = temp->next;
+    if (temp) {
+        temp->progress[currentDay] = 1;
+        temp->totalDone++;
+        printf("Marked '%s' done for day %d!\n", temp->name, currentDay + 1);
+    } else {
+        printf("Invalid choice!\n");
+    }
+}
+
+void deleteHabit() {
+    viewHabits();
+    printf("Enter habit number to delete: ");
+    int choice;
+    scanf("%d", &choice);
+    Habit *temp = head, *prev = NULL;
+    while (temp && --choice) {
+        prev = temp;
+        temp = temp->next;
+    }
+    if (temp) {
+        if (prev) prev->next = temp->next;
+        else head = temp->next;
+        free(temp);
+        printf("Habit deleted!\n");
+    } else {
+        printf("Invalid choice!\n");
+    }
+}
+
+void showSummary() {
+    Habit *temp = head;
+    if (!temp) {
+        printf("No habits to show!\n");
+        return;
+    }
+    printf("\n===== Habit Summary =====\n");
+    while (temp) {
+        printf("%s - %d/%d days completed\n", temp->name, temp->totalDone, DAYS);
+        temp = temp->next;
+    }
+}
+
+void saveData() {
+    FILE *fp = fopen("habits.txt", "w");
+    if (!fp) return;
+    Habit *temp = head;
+    while (temp) {
+        fprintf(fp, "%s %d ", temp->name, temp->totalDone);
+        for (int i = 0; i < DAYS; i++)
+            fprintf(fp, "%d ", temp->progress[i]);
+        fprintf(fp, "\n");
+        temp = temp->next;
+    }
+    fclose(fp);
+    printf("Data saved!\n");
+}
+
+void loadData() {
+    FILE *fp = fopen("habits.txt", "r");
+    if (!fp) return;
+    while (!feof(fp)) {
+        Habit *newHabit = (Habit *)malloc(sizeof(Habit));
+        if (fscanf(fp, "%s %d", newHabit->name, &newHabit->totalDone) != 2) {
+            free(newHabit);
+            break;
+        }
+        for (int i = 0; i < DAYS; i++)
+            fscanf(fp, "%d", &newHabit->progress[i]);
+        newHabit->next = head;
+        head = newHabit;
+    }
+    fclose(fp);
+}
+
+int main() {
+    int choice;
+    loadData();
+    while (1) {
+        printf("\n=== Daily Habit Tracker ===\n");
+        printf("1. Add Habit\n2. View Habits\n3. Mark Habit Done\n4. Delete Habit\n5. Show Summary\n6. Next Day\n7. Save & Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1: addHabit(); break;
+            case 2: viewHabits(); break;
+            case 3: markHabitDone(); break;
+            case 4: deleteHabit(); break;
+            case 5: showSummary(); break;
+            case 6: currentDay++; printf("Moved to Day %d!\n", currentDay + 1); break;
+            case 7: saveData(); exit(0);
+            default: printf("Invalid choice!\n");
+        }
+    }
+    return 0;
+}
