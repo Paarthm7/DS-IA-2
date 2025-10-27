@@ -1,4 +1,4 @@
-# 🧭 Daily Habit Tracker (C Project)
+# 🧭 Daily Habit Tracker 
 
 A simple and interactive **Daily Habit Tracker** built using the C programming language.  
 This console-based program helps users add, view, track, and manage their daily habits while saving progress automatically.
